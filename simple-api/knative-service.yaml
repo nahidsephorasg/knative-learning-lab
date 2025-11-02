@@ -1,0 +1,38 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: simple-api
+  namespace: default
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"  
+        autoscaling.knative.dev/maxScale: "10" 
+        autoscaling.knative.dev/target: "5"  
+        autoscaling.knative.dev/metric: "concurrency"  
+        autoscaling.knative.dev/target-utilization-percentage: "70"  
+    spec:
+      containers:
+        - image: rudder9290/knative-serving:v2  
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENVIRONMENT
+              value: "production"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
